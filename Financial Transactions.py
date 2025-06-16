@@ -32,7 +32,7 @@ def load_transactions(filename='financial_transactions.csv'):
     except FileNotFoundError:
             print(f"Error: The file at {filename} was not found")
 
-            return transactions
+    return transactions
 
 def add_transaction(transactions):
          
@@ -214,32 +214,36 @@ def analyze_finances(transactions):
      for customer, total in summary_by_customer.items():
         print(f"{customer}: ${total:,.2f}")
 
-def save_transactions(transactions, filename='filename_transactions.csv'):
-     if not transactions:
-          print("No transactions to save.")
-          return
-     fieldnames = ['transaction_id', 'date', 'customer_id', 'amount', 'type', 'description']
+def save_transactions(transactions, filename='financial_transactions.csv'):
+    if not transactions:
+        print("No transactions to save.")
+        return
 
-     try:
-          with open(filename, 'w', newline='') as csvfile:
-               writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    fieldnames = ['transaction_id', 'date', 'customer_id', 'amount', 'type', 'description']
 
-               writer.writeheader()
+    try:
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
 
-               for txn in transactions:
+            for txn in transactions:
+                try:
                     writer.writerow({
-                         'transaction_id': txn.get('transaction_id', ''),
-                         'date': txn['date'].strftime('%Y-%m-%d') if isinstance(txn['date'], datetime) else txn['date'],
-                         'customer_id': txn.get('customer_id', ''),
-                         'amount': f"{txn['amount']:.2f}",
-                         'type': txn.get('type', ''),
-                         'description': txn.get('description', '')
+                        'transaction_id': int(txn.get('transaction_id', 0)),
+                        'date': txn['date'].strftime('%Y-%m-%d') if isinstance(txn['date'], datetime) else txn['date'],
+                        'customer_id': txn.get('customer_id', ''),
+                        'amount': f"{float(txn['amount']):.2f}",
+                        'type': txn.get('type', '').lower(),
+                        'description': txn.get('description', '')
                     })
+                except (ValueError, TypeError) as e:
+                    print(f"Skipping transaction due to error: {e} - Transaction: {txn}")
+                    continue
 
-          print(f"Transactions saved successfully to '{filename}'.")
+        print(f"Transactions saved successfully to '{filename}'.")
 
-     except IOError as e:
-          print(f"Error saving transactions: {e}")
+    except IOError as e:
+        print(f"Error saving transactions: {e}")
 
 
 def generate_report(transactions, filename='report.txt'):
@@ -321,3 +325,6 @@ def main():
                break
           else:
                print("Invalid choice. Please select a valid option.")
+
+if __name__ == "__main__":
+     main()
